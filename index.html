@@ -2,9 +2,182 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Thingiverse Upload Viewer</title>
+    <!-- Seamless Child Script -->
+    <script src="https://cdn.jsdelivr.net/gh/MicroContent/AudioContentViewer@main/seamlessjs/seamless.child.min.js"></script>
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
+
+    <style>
+        .wrapper {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .center {
+            margin: auto;
+            padding: 1em;
+        }
+
+        .preview-image{
+            max-height: 20em;
+        }
+
+        .wrapper-files {
+            padding: 0.5em;
+            max-height: 30em;
+            overflow: auto;
+            margin-bottom: 1em;
+        }
+
+        /* === File Items === */
+        .uploaded {
+            width: 96%;
+            margin: 0.5em;
+            padding: 0.5em 1em 0.5em 1em;
+            background-color: #EDEDED;
+            box-shadow: 0 0.2em 0.3em rgba(0,0,0,0.30);
+            border-radius: 0.5em;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+        }
+        .file {
+            display: flex;
+            width: 100%;
+            flex-direction: column;
+        }
+        .file-name {
+            flex-grow: 4;
+            line-height: 0;
+            color: #0c3214;
+            font-size: 1.1rem;
+            letter-spacing: 0.1em;
+        }
+        .fa-download:hover {
+            cursor: pointer;
+            opacity: 0.8;
+        }
+        .fas {
+            font-size: 1.2em;
+        }
+        .far {
+            margin-right: 1em;
+            padding: 0.3em;
+            font-size: 1.2em;
+            color: #0c3214;
+        }
+
+        .btn {
+            float: right;
+        }
+    </style>
 </head>
 <body>
+    <!-- Connection establishment and communication -->
+    <script type="application/javascript">
+        var connection = window.seamless.connect({
+            url: window.location.url,
+            allowStyleInjection: true,
+        });
 
+        connection.receive(function (data) {
+            switch (data.type) {
+                case 'setContent':
+                    // parent for varying type of input sends data as special object; data.main[0] is the array of arrays with your message inside
+                    window.data = data.main[0]
+                    init();
+                    break;
+
+                case 'submit':
+                    if (data.value === 'true') {
+                        onSubmit(); // todo
+                    }
+                    break;
+
+                case 'getXapiStatements':
+                    stmts = data.stmts; // todo get api statement
+                    break;
+
+                case 'seamless_styles':
+                    updateLayout();
+            }
+        });
+
+        function init(){
+            if (window.data === undefined) {
+
+                // TODO new
+            } else {
+
+                // TODO edit
+            }
+        }
+
+        function updateLayout() {
+            connection.send({
+                type: 'updateLayout'
+            });
+        }
+
+        function sendStatement(stmt) {
+            connection.send({
+                type: 'sendXapiStatement',
+                stmt: stmt
+            });
+        }
+
+        function getStatements() {
+            connection.send({
+                type: 'getXapiStatements'
+            });
+        }
+    </script>
+
+    <!-- UI -->
+    <div class="wrapper">
+        <img class="preview-image center" src="https://resources.finalsite.net/images/v1645721429/rdaleorg/qblyqgwortzxvb3q4wct/testing.jpg">
+    </div>
+    <p>Files:</p>
+    <div class="wrapper-files" id="wrapper-files">
+        <div class="uploaded uploaded--one">
+            <i class="far fa-file-image"></i>
+            <div class="file-name">lorem_ipsum.jpg</div>
+            <i class="fas fa-download"></i>
+        </div>
+        <div class="uploaded uploaded--one">
+            <i class="far fa-file"></i>
+            <div class="file-name">dolor_sit_amet.txt</div>
+            <i class="fas fa-download"></i>
+        </div>
+        <div class="uploaded uploaded--one">
+            <i class="far fa-file"></i>
+            <div class="file-name">consecteur_adipiscing.stl</div>
+            <i class="fas fa-download"></i>
+        </div>
+
+    </div>
+    <button type="submit" class="btn btn-success" >download all <i class="fas fa-download"></i></button>
+
+    <!-- Plugin Business Logic -->
+    <script>
+
+
+
+        function renderFileItem(file) {
+            const li = document.createElement('li')
+            li.innerText = file.name;
+            document.getElementById('file-list').appendChild(li);
+        }
+
+        let stmts;
+    </script>
 </body>
 </html>
