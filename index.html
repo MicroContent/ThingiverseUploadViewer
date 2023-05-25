@@ -121,6 +121,8 @@
         });
 
         function init(){
+            thingiverseApiToken = "3a91950d182b1e56aaad3f1bea26a34d"
+            downloadThingFiles()
             if (window.data === undefined) { // TODO new
 
             } else { // TODO edit
@@ -136,12 +138,12 @@
                     document.getElementById('thing-url').innerText = thingUrl;
                 }
 
-                thingiverseUrls = window.data.thingiverseFiles
+                thingiverseFileNames = window.data.thingiverseFiles
                 cloudinaryUrls = window.data.mediaUrlArray
 
-                if (thingiverseUrls){
-                    thingiverseUrls.forEach( url => {
-                        renderFileItem(url);
+                if (thingiverseFileNames){
+                    thingiverseFileNames.forEach( name => {
+                        renderFileItem(name);
                     });
                 }
 
@@ -211,9 +213,25 @@
             // todo
         }
 
+        function getXapiObject() {
+            // may be called on init()
+            return {
+                "objectType": "Activity",
+                // id is set by hosting application
+                "id": undefined,
+                "definition": {
+                    "description": {
+                        "de-AT": window.data.title,
+                    },
+                    "type": "http://adlnet.gov/expapi/activities/cmi.interaction",
+                    "interactionType": "download"
+                }
+            };
+        }
+
         /**
          * Renders HTML elements for a given file.
-         * @param file JS File object to be rendered.
+         * @param filename JS File object to be rendered.
          * @example
          * <div class="uploaded">
          *      <i class="far fa-file-image"></i>
@@ -221,14 +239,14 @@
          *      <a class="download" href="" download=""><i class="fas fa-download"></i></a>
          *  </div>
          */
-        function renderFileItem(file) { // todo do we even have a file here? is a link, no? how to get file name?
-            console.log(file);
+        function renderFileItem(filename) { // todo do we even have a file here? is a link, no? how to get file name?
+            console.log(filename);
             return;
-            const filename = file.name.length <= 15 ? file.name : shortenFilename(file.name, 15)
-            const filetype = getFiletype(file.name);
+            const displayName = filename.length <= 15 ? filename.length : shortenFilename(filename, 15)
+            const filetype = getFiletype(filename);
 
             const divFile = document.createElement('div');
-            divFile.id = file.name
+            divFile.id = filename
             divFile.classList.add('uploaded');
             divFile.onclick = () => downloadAll();
 
@@ -243,7 +261,7 @@
 
             const divFilename = document.createElement('div');
             divFilename.classList.add('file-name');
-            divFilename.innerText = filename;
+            divFilename.innerText = displayName;
 
             const linkDownload = document.createElement('a');
             linkDownload.classList.add('download')
@@ -278,11 +296,49 @@
 
         }
 
+        function downloadThingFiles(thingUrl) {
+            const jsonFilesObject = getThingFiles(thingUrl);
+            if (!jsonFilesObject) {
+                return;
+            }
+            const fileNames = jsonFilesObject.map(file => file.name); // todo should this method be used for rendering?
+            const fileUrls = jsonFilesObject.map(file => file.public_url);
+
+            console.log(jsonFilesObject);
+
+        }
+
+        function getThingFiles(thingUrl){
+            /*const split = thingUrl.split(':')
+            const id = split[split.length-1]
+
+            if (!id) {
+                console.log('Error: Malformed Thing URL')
+                return
+            }*/
+            const id = 6044392;
+            let xhr = new XMLHttpRequest();
+            xhr.open('GET', `https://api.thingiverse.com/things/${id}/files`, false);
+            xhr.setRequestHeader("Content-Type","application/json; charset=utf-8");
+            xhr.setRequestHeader('Authorization', 'Bearer ' + thingiverseApiToken);
+            xhr.send();
+
+            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                return JSON.parse(xhr.response);
+            } else {
+                console.log("An issue occurred during informing thingiverse preupload:");
+                console.log(xhr.response);
+                return undefined;
+            }
+        }
+
         let stmts;
         let cloudinaryUrls = [];
-        let thingiverseUrls = [];
+        let thingiverseFileNames = [];
         let imageUrl = "";
         let thingUrl = "";
+
+        let thingiverseApiToken = "";
 
 
     </script>
