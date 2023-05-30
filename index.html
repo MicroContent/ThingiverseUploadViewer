@@ -219,8 +219,7 @@
          *  </div>
          */
         function renderFileItem(filename) {
-            console.log(filename);
-            //return;
+            console.log(filename); // todo delete
             const displayName = filename.length <= 15 ? filename : shortenFilename(filename, 15)
             const filetype = getFiletype(filename);
 
@@ -267,6 +266,7 @@
 
         }
 
+
         async function downloadAll(){ // todo error handling
 
             const cloudinaryEntries = cloudinaryUrls.map(url => {
@@ -274,17 +274,21 @@
                 const filename = split[split.length-1]; // todo this is not the original name
                 return {name: filename, url: url}
             });
-            const thingiverseFilesEntries = await getThingFilesUrls(thingUrl);
-            const thingiverseImagesEntries = await getThingImagesUrls(thingUrl);
+            const thingiverseFilesEntries = await transformThingFilesUrls(thingUrl);
+            const thingiverseImagesEntries = await transformThingImagesUrls(thingUrl);
 
-            const allEntries = cloudinaryEntries.concat(thingiverseFilesEntries, thingiverseImagesEntries);
-            const blobList = await fetchUrls(allEntries)
+            const allEntries = cloudinaryEntries.concat(thingiverseFilesEntries, thingiverseImagesEntries); // todo use for rendering?
+            const blobList = await fetchUrls(allEntries);
 
             console.log(blobList)
 
             zipBlobs(blobList);
         }
 
+        /**
+         * Uses the JSZip library to generate and download a zip folder for a given list of Blobs
+         * @param blobList files which should be zipped in the form of {name: filename, blob: fileBlob}
+         */
         function zipBlobs(blobList) {
 
             const zip = new JSZip();
@@ -295,27 +299,45 @@
             })*/
         }
 
-        async function getThingFilesUrls(thingUrl) { // todo use this for rendering?
+        /**
+         * transforms associated files with a Thing into entries in the form of {name: filename, url: fileUrl}
+         * @param thingUrl public url of a Thing
+         * @return {Promise<*>} {name: filename, url: fileUrl}
+         */
+        async function transformThingFilesUrls(thingUrl) {
             const jsonFilesObject = getThingFiles(thingUrl);
             if (!jsonFilesObject) return;
 
-            return jsonFilesObject.map(file => {return {name: file.name, url: file.public_url}});
+            return jsonFilesObject
+                .map(file => {return {name: file.name, url: file.public_url}})
+                .filter(entry => entry!== null && entry !== undefined);
         }
 
-        async function getThingImagesUrls(thingUrl) {
+        /**
+         * transforms associated images with a Thing into entries in the form of {name: filename, url: fileUrl}
+         * @param thingUrl public url of a Thing
+         * @return {Promise<*>} {name: filename, url: fileUrl}
+         */
+        async function transformThingImagesUrls(thingUrl) {
             const jsonImagesObject = getThingImages(thingUrl);
             if (!jsonImagesObject) return;
 
-            return jsonImagesObject.filter(image => image.sizes !== null).map(image => {
-                const foundUrls = image.sizes
-                    .filter(elem => elem.type === "display" && elem.size === "large")
-                    .map(size => size.url);
+            return jsonImagesObject
+                .filter(image => image.sizes !== null)
+                .map(image => {
+                    const foundUrls = image.sizes
+                        .filter(elem => elem.type === "display" && elem.size === "large")
+                        .map(size => size.url)
 
-                return {name: image.name, url: foundUrls[0]}
-
-            });
+                    return {name: image.name, url: foundUrls[0]}
+                }).filter(entry => entry!== null && entry !== undefined);
         }
 
+        /**
+         * Performs a GET request to the Thingiverse API to get all files associated with a Thing
+         * @param thingUrl public url of a Thing
+         * @return {undefined|any} if successful a parsed JSON Object of all files, otherwise undefined
+         */
         function getThingFiles(thingUrl){
             const split = thingUrl.split(':')
             const id = split[split.length-1]
@@ -340,6 +362,11 @@
             }
         }
 
+        /**
+         * Performs a GET request to the Thingiverse API to get all images associated with a Thing
+         * @param thingUrl public url of a Thing
+         * @return {undefined|any} if successful a parsed JSON Object of all images, otherwise undefined
+         */
         function getThingImages(thingUrl) {
             const split = thingUrl.split(':')
             const id = split[split.length-1]
@@ -348,7 +375,7 @@
                 console.log('Error: Malformed Thing URL')
                 return
             }
-            
+
             let xhr = new XMLHttpRequest();
             xhr.open('GET', `https://api.thingiverse.com/things/${id}/images`, false);
             xhr.setRequestHeader("Content-Type","application/json; charset=utf-8");
@@ -364,6 +391,11 @@
             }
         }
 
+        /**
+         * fetches the content from urls and converts them into blobs
+         * @param fileUrls a given array of entries which should be download, must given in the form of {name: filename, url: fileUrl}
+         * @return {Promise<*[]>} returns an array of responses in the form of {name: filename, blob: responseBlob}
+         */
         async function fetchUrls(fileUrls) {
             let fileBlobs = [];
 
