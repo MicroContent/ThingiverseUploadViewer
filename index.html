@@ -55,14 +55,14 @@
             justify-content: center;
             align-items: center;
         }
-        .uploaded:hover {
+        /*.uploaded:hover {
             cursor: pointer;
             background-color: #DCDCDC;
         }
         .uploaded:active{
             cursor: pointer;
             background-color: #CBCBCB;
-        }
+        }*/
 
         .file-name {
             flex-grow: 4;
@@ -71,10 +71,10 @@
             font-size: 1.1rem;
         }
 
-        .fa-download:hover {
+       /* .fa-download:hover {
             cursor: pointer;
             opacity: 0.8;
-        }
+        }*/
         .download {
             color: #1D201E;
         }
@@ -185,36 +185,12 @@
     <p>View on Thingiverse: <a href="" id="thing-url" target="_blank"></a></p>
     <p>Files:</p>
     <div class="wrapper-files" id="wrapper-files">
-        <!--<div class="uploaded">
-            <i class="far fa-file-image"></i>
-            <div class="file-name">lorem_ipsum.jpg</div>
-            <a class="download" href="" download=""><i class="fas fa-download"></i></a>
-        </div>
-        <div class="uploaded uploaded&#45;&#45;one">
-            <i class="far fa-file-audio"></i>
-            <div class="file-name">dolor_sit_amet.mp3</div>
-            <i class="fas fa-download"></i>
-        </div>
-        <div class="uploaded uploaded&#45;&#45;one">
-            <i class="far fa-file"></i>
-            <div class="file-name">consecteur_adipiscing.stl</div>
-            <i class="fas fa-download"></i>
-        </div>-->
 
     </div>
-    <button type="submit" class="btn btn-success" onclick="downloadThingFiles()">download all <i class="fas fa-download"></i></button>
+    <button type="submit" class="btn btn-success" onclick="downloadAll()">download all <i class="fas fa-download"></i></button>
 
     <!-- Plugin Business Logic -->
     <script>
-
-        function downloadFile(url) {
-            // todo
-        }
-
-        function downloadAll() {
-            console.log("download All Click");
-            // todo
-        }
 
         function getXapiObject() {
             // may be called on init()
@@ -245,7 +221,7 @@
         function renderFileItem(filename) {
             console.log(filename);
             //return;
-            const displayName = filename.length <= 15 ? filename.length : shortenFilename(filename, 15)
+            const displayName = filename.length <= 15 ? filename : shortenFilename(filename, 15)
             const filetype = getFiletype(filename);
 
             const divFile = document.createElement('div');
@@ -266,15 +242,7 @@
             divFilename.classList.add('file-name');
             divFilename.innerText = displayName;
 
-            const linkDownload = document.createElement('a');
-            linkDownload.classList.add('download')
-            linkDownload.href = "" // todo
-            linkDownload.download = "" // todo
-            const iconDownload = document.createElement('i');
-            iconDownload.classList.add('fas', 'fa-download');
-            linkDownload.appendChild(iconDownload);
-
-            divFile.append(iconFile, divFilename, linkDownload);
+            divFile.append(iconFile, divFilename);
             document.getElementById('wrapper-files').appendChild(divFile);
         }
 
@@ -299,59 +267,64 @@
 
         }
 
-        async function downloadThingFiles(thingUrl) { // todo use this for rendering?
-            const jsonFilesObject = getThingFiles(thingUrl);
-            if (!jsonFilesObject) {
-                return;
-            }
+        async function downloadAll(){ // todo error handling
 
-            const fileUrls = jsonFilesObject.map(file => {return {name: file.name, url: file.public_url}});
-            let fileBlobs = [];
+            const cloudinaryEntries = cloudinaryUrls.map(url => {
+                const split = url.split("/")
+                const filename = split[split.length-1]; // todo this is not the original name
+                return {name: filename, url: url}
+            });
+            const thingiverseFilesEntries = await getThingFilesUrls(thingUrl);
+            const thingiverseImagesEntries = await getThingImagesUrls(thingUrl);
 
-            for(elem of fileUrls) {
-                const blob = await fetch(elem.url)
-                    .then(res => new Blob([res.text()])) // todo i dont think that works
-                    .catch(reason => {
-                        console.log(reason)
-                    });
+            const allEntries = cloudinaryEntries.concat(thingiverseFilesEntries, thingiverseImagesEntries);
+            const blobList = await fetchUrls(allEntries)
 
-                /*const reader = res.body.getReader();
-                const blob = await reader.read().then(chunk => chunk.value)*/
-                fileBlobs.push({name: elem.name, blob: blob})
-            }
+            console.log(blobList)
 
-            zipBlobs(fileBlobs);
-            console.log(fileBlobs);
-
+            zipBlobs(blobList);
         }
 
         function zipBlobs(blobList) {
 
             const zip = new JSZip();
-            zip.folder("test").file(blobList[0].name, blobList[0].blob);
-            zip.generateAsync({ type: "blob" }).then(blob => {
-                const downloadLink = document.createElement("a");
-                downloadLink.href = URL.createObjectURL(blob);
-                downloadLink.download = "test.zip";
-                downloadLink.click();
-            });
-            /*const zip = new JSZip();
+            /*const zip = new JSZip(); todo this works but is blocked by some seamless event
             zip.folder("test").file(blobList[0].name, blobList[0].blob)
             zip.generateAsync({type: "blob"}).then(blob => {
                 saveAs(blob, "test.zip");
             })*/
         }
 
+        async function getThingFilesUrls(thingUrl) { // todo use this for rendering?
+            const jsonFilesObject = getThingFiles(thingUrl);
+            if (!jsonFilesObject) return;
+
+            return jsonFilesObject.map(file => {return {name: file.name, url: file.public_url}});
+        }
+
+        async function getThingImagesUrls(thingUrl) {
+            const jsonImagesObject = getThingImages(thingUrl);
+            if (!jsonImagesObject) return;
+
+            return jsonImagesObject.filter(image => image.sizes !== null).map(image => {
+                const foundUrls = image.sizes
+                    .filter(elem => elem.type === "display" && elem.size === "large")
+                    .map(size => size.url);
+
+                return {name: image.name, url: foundUrls[0]}
+
+            });
+        }
 
         function getThingFiles(thingUrl){
-            /*const split = thingUrl.split(':')
+            const split = thingUrl.split(':')
             const id = split[split.length-1]
 
             if (!id) {
                 console.log('Error: Malformed Thing URL')
                 return
-            }*/
-            const id = 6044392;
+            }
+
             let xhr = new XMLHttpRequest();
             xhr.open('GET', `https://api.thingiverse.com/things/${id}/files`, false);
             xhr.setRequestHeader("Content-Type","application/json; charset=utf-8");
@@ -365,6 +338,46 @@
                 console.log(xhr.response);
                 return undefined;
             }
+        }
+
+        function getThingImages(thingUrl) {
+            const split = thingUrl.split(':')
+            const id = split[split.length-1]
+
+            if (!id) {
+                console.log('Error: Malformed Thing URL')
+                return
+            }
+            
+            let xhr = new XMLHttpRequest();
+            xhr.open('GET', `https://api.thingiverse.com/things/${id}/images`, false);
+            xhr.setRequestHeader("Content-Type","application/json; charset=utf-8");
+            xhr.setRequestHeader('Authorization', 'Bearer ' + thingiverseApiToken);
+            xhr.send();
+
+            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                return JSON.parse(xhr.response);
+            } else {
+                console.log("An issue occurred during informing thingiverse preupload:");
+                console.log(xhr.response);
+                return undefined;
+            }
+        }
+
+        async function fetchUrls(fileUrls) {
+            let fileBlobs = [];
+
+            for(const elem of fileUrls) {
+                const blob = await fetch(elem.url)
+                    .then(res => res.blob())
+                    .catch(reason => {
+                        console.log(reason)
+                    });
+
+                fileBlobs.push({name: elem.name, blob: blob})
+            }
+
+            return fileBlobs;
         }
 
         let stmts;
