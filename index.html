@@ -55,14 +55,6 @@
             justify-content: center;
             align-items: center;
         }
-        /*.uploaded:hover {
-            cursor: pointer;
-            background-color: #DCDCDC;
-        }
-        .uploaded:active{
-            cursor: pointer;
-            background-color: #CBCBCB;
-        }*/
 
         .file-name {
             flex-grow: 4;
@@ -71,10 +63,6 @@
             font-size: 1.1rem;
         }
 
-       /* .fa-download:hover {
-            cursor: pointer;
-            opacity: 0.8;
-        }*/
         .download {
             color: #1D201E;
         }
@@ -90,6 +78,11 @@
 
         .btn {
             float: right;
+        }
+
+        .err-msg {
+            color: red;
+            display: none; /* todo */
         }
     </style>
 </head>
@@ -149,12 +142,6 @@
                         renderFileItem(name);
                     });
                 }
-
-                /*if (cloudinaryUrls) {
-                    cloudinaryUrls.forEach(url => {
-                        renderFileItem(url);
-                    });
-                }*/
             }
         }
 
@@ -183,6 +170,7 @@
         <img class="preview-image center" id="preview-img" src="https://resources.finalsite.net/images/v1645721429/rdaleorg/qblyqgwortzxvb3q4wct/testing.jpg">
     </div>
     <p>View on Thingiverse: <a href="" id="thing-url" target="_blank"></a></p>
+    <p id="download-err" class="err-msg"></p>
     <p>Files:</p>
     <div class="wrapper-files" id="wrapper-files">
 
