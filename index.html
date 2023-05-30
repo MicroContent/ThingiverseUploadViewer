@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <title>Thingiverse Upload Viewer</title>
     <!-- Seamless Child Script -->
-    <script src="https://cdn.jsdelivr.net/gh/MicroContent/AudioContentViewer@main/seamlessjs/seamless.child.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/MicroContent/ThingiverseUploadViewer@main/seamlessjs/seamless.child.min.js"></script>
+    <!-- JSZip -->
+    <script src="https://cdn.jsdelivr.net/gh/MicroContent/ThingiverseUploadViewer@main/jszip/jszip.min.js"></script>
     <!-- jQuery library -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- FileSaver -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/1.3.8/FileSaver.js"></script>
     <!-- CSS -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css">
@@ -121,8 +125,7 @@
         });
 
         function init(){
-            thingiverseApiToken = "3a91950d182b1e56aaad3f1bea26a34d"
-            downloadThingFiles()
+
             if (window.data === undefined) { // TODO new
 
             } else { // TODO edit
@@ -138,20 +141,20 @@
                     document.getElementById('thing-url').innerText = thingUrl;
                 }
 
-                thingiverseFileNames = window.data.thingiverseFiles
+                fileNames = window.data.fileNames
                 cloudinaryUrls = window.data.mediaUrlArray
 
-                if (thingiverseFileNames){
-                    thingiverseFileNames.forEach( name => {
+                if (fileNames){
+                    fileNames.forEach( name => {
                         renderFileItem(name);
                     });
                 }
 
-                if (cloudinaryUrls) {
+                /*if (cloudinaryUrls) {
                     cloudinaryUrls.forEach(url => {
                         renderFileItem(url);
                     });
-                }
+                }*/
             }
         }
 
@@ -182,24 +185,24 @@
     <p>View on Thingiverse: <a href="" id="thing-url" target="_blank"></a></p>
     <p>Files:</p>
     <div class="wrapper-files" id="wrapper-files">
-        <div class="uploaded">
+        <!--<div class="uploaded">
             <i class="far fa-file-image"></i>
             <div class="file-name">lorem_ipsum.jpg</div>
             <a class="download" href="" download=""><i class="fas fa-download"></i></a>
         </div>
-        <div class="uploaded uploaded--one">
+        <div class="uploaded uploaded&#45;&#45;one">
             <i class="far fa-file-audio"></i>
             <div class="file-name">dolor_sit_amet.mp3</div>
             <i class="fas fa-download"></i>
         </div>
-        <div class="uploaded uploaded--one">
+        <div class="uploaded uploaded&#45;&#45;one">
             <i class="far fa-file"></i>
             <div class="file-name">consecteur_adipiscing.stl</div>
             <i class="fas fa-download"></i>
-        </div>
+        </div>-->
 
     </div>
-    <button type="submit" class="btn btn-success" >download all <i class="fas fa-download"></i></button>
+    <button type="submit" class="btn btn-success" onclick="downloadThingFiles()">download all <i class="fas fa-download"></i></button>
 
     <!-- Plugin Business Logic -->
     <script>
@@ -239,9 +242,9 @@
          *      <a class="download" href="" download=""><i class="fas fa-download"></i></a>
          *  </div>
          */
-        function renderFileItem(filename) { // todo do we even have a file here? is a link, no? how to get file name?
+        function renderFileItem(filename) {
             console.log(filename);
-            return;
+            //return;
             const displayName = filename.length <= 15 ? filename.length : shortenFilename(filename, 15)
             const filetype = getFiletype(filename);
 
@@ -296,17 +299,49 @@
 
         }
 
-        function downloadThingFiles(thingUrl) {
+        async function downloadThingFiles(thingUrl) { // todo use this for rendering?
             const jsonFilesObject = getThingFiles(thingUrl);
             if (!jsonFilesObject) {
                 return;
             }
-            const fileNames = jsonFilesObject.map(file => file.name); // todo should this method be used for rendering?
-            const fileUrls = jsonFilesObject.map(file => file.public_url);
 
-            console.log(jsonFilesObject);
+            const fileUrls = jsonFilesObject.map(file => {return {name: file.name, url: file.public_url}});
+            let fileBlobs = [];
+
+            for(elem of fileUrls) {
+                const blob = await fetch(elem.url)
+                    .then(res => new Blob([res.text()])) // todo i dont think that works
+                    .catch(reason => {
+                        console.log(reason)
+                    });
+
+                /*const reader = res.body.getReader();
+                const blob = await reader.read().then(chunk => chunk.value)*/
+                fileBlobs.push({name: elem.name, blob: blob})
+            }
+
+            zipBlobs(fileBlobs);
+            console.log(fileBlobs);
 
         }
+
+        function zipBlobs(blobList) {
+
+            const zip = new JSZip();
+            zip.folder("test").file(blobList[0].name, blobList[0].blob);
+            zip.generateAsync({ type: "blob" }).then(blob => {
+                const downloadLink = document.createElement("a");
+                downloadLink.href = URL.createObjectURL(blob);
+                downloadLink.download = "test.zip";
+                downloadLink.click();
+            });
+            /*const zip = new JSZip();
+            zip.folder("test").file(blobList[0].name, blobList[0].blob)
+            zip.generateAsync({type: "blob"}).then(blob => {
+                saveAs(blob, "test.zip");
+            })*/
+        }
+
 
         function getThingFiles(thingUrl){
             /*const split = thingUrl.split(':')
@@ -334,7 +369,7 @@
 
         let stmts;
         let cloudinaryUrls = [];
-        let thingiverseFileNames = [];
+        let fileNames = [];
         let imageUrl = "";
         let thingUrl = "";
 
