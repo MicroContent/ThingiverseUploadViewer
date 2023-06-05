@@ -90,7 +90,7 @@
 
         .err-msg {
             color: red;
-            display: none; /* todo */
+            display: none;
         }
     </style>
 </head>
@@ -129,8 +129,8 @@
 
             if (window.data === undefined) { // TODO new
 
-            } else { // TODO edit
-                title = window.data.title.trim().replace(" ", "-");
+            } else { // edit
+                title = sanitizeTitle(window.data.title);
                 document.getElementById('zip-file-name').innerText = title + ".zip";
                 imageUrl = window.data.imageUrl;
                 if (imageUrl) {
@@ -239,6 +239,10 @@
 
             fileListHidden = !fileListHidden;
 
+        }
+
+        function sanitizeTitle(title) {
+            return title.replace(/[^a-zA-Z0-9_.-]/g,"-").toLowerCase();
         }
 
         function getDateString(){
