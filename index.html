@@ -112,12 +112,12 @@
 
                 case 'submit':
                     if (data.value === 'true') {
-                        onSubmit(); // todo
+                        // todo ?
                     }
                     break;
 
                 case 'getXapiStatements':
-                    stmts = data.stmts; // todo get api statement
+                    stmts = data.stmts;
                     break;
 
                 case 'seamless_styles':
@@ -189,11 +189,10 @@
     </div>
     <div id="file-list">
         <ul id="ul-file-list">
-
         </ul>
     </div>
 
-    <button onclick="showHideFileList()" class="btn" id="btn-show-hide">show file list</button>
+    <button onclick="showHideFileList()" class="btn btn-secondary" id="btn-show-hide">show file list</button>
     <button type="submit" class="btn btn-success" onclick="downloadAll()">download all <i class="fas fa-download"></i></button>
 
     <!-- Plugin Business Logic -->
@@ -213,6 +212,23 @@
                     "interactionType": "download"
                 }
             };
+        }
+
+        function sendXapiStatement() {
+            var stmt = {};
+            stmt.actor = undefined;
+            stmt.verb = {
+                "id": "http://adlnet.gov/expapi/verbs/completed",
+                "display": {
+                    "de-DE": "abgeschlossen",
+                    "en-US": "completed",
+                    "fr-FR": "complété",
+                    "es-ES": "realizado"
+                }
+            }
+
+            stmt.object = getXapiObject();
+            sendStatement(stmt);
         }
 
         /**
@@ -255,6 +271,7 @@
 
 
         async function downloadAll(){ // todo error handling
+            sendXapiStatement();
 
             const cloudinaryEntries = cloudinaryUrls.map(url => {
                 const split = url.split("/")
