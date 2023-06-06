@@ -19,7 +19,7 @@
 
     <style>
         body {
-            padding-bottom: 3em;
+            padding-bottom: 2.5em;
         }
         .wrapper {
             width: 100%;
@@ -133,13 +133,10 @@
                     thingiverse = Object.values(data)[0];
                 });
 
-
-
-            if (window.data === undefined) { // TODO new
-
-            } else { // edit
+            if (window.data !== undefined) { // edit
                 title = sanitizeTitle(window.data.title);
                 document.getElementById('zip-file-name').innerText = title + ".zip";
+
                 imageUrl = window.data.imageUrl;
                 if (imageUrl) {
                     const img = document.getElementById('preview-img');
@@ -177,16 +174,11 @@
             });
         }
 
-        function getStatements() {
-            connection.send({
-                type: 'getXapiStatements'
-            });
-        }
     </script>
 
     <!-- UI -->
     <div class="wrapper">
-        <img class="preview-image center" id="preview-img" src="">
+        <img class="preview-image center" id="preview-img" src="" alt="">
     </div>
     <p>View on Thingiverse: <a href="" id="thing-url" target="_blank"></a></p>
     <p id="download-err" class="err-msg"></p>
