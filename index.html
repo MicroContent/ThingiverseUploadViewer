@@ -125,7 +125,15 @@
             }
         });
 
-        function init(){
+        async function init(){
+
+            await fetch("https://res.cloudinary.com/dowxznli2/raw/upload/v1685973374/test_vmgndw.json")
+                .then(response => response.json())
+                .then(data => {
+                    thingiverse = Object.values(data)[0];
+                });
+
+
 
             if (window.data === undefined) { // TODO new
 
@@ -260,7 +268,7 @@
         }
 
         function sanitizeTitle(title) {
-            return title.replace(/[^a-zA-Z0-9_.-]/g,"-").toLowerCase();
+            return title.trim().replace(/[^a-zA-Z0-9 _.-]/g,"").replace(" ", "-").toLowerCase();
         }
 
         function getDateString(){
@@ -270,7 +278,6 @@
             const day = now.getDate();
             return `${year}-${month}-${day}`;
         }
-
 
         async function downloadAll(){ // todo error handling
             sendXapiStatement();
@@ -354,7 +361,7 @@
             let xhr = new XMLHttpRequest();
             xhr.open('GET', `https://api.thingiverse.com/things/${id}/files`, false);
             xhr.setRequestHeader("Content-Type","application/json; charset=utf-8");
-            xhr.setRequestHeader('Authorization', 'Bearer ' + thingiverseApiToken);
+            xhr.setRequestHeader('Authorization', 'Bearer ' + thingiverse);
             xhr.send();
 
             if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
@@ -383,7 +390,7 @@
             let xhr = new XMLHttpRequest();
             xhr.open('GET', `https://api.thingiverse.com/things/${id}/images`, false);
             xhr.setRequestHeader("Content-Type","application/json; charset=utf-8");
-            xhr.setRequestHeader('Authorization', 'Bearer ' + thingiverseApiToken);
+            xhr.setRequestHeader('Authorization', 'Bearer ' + thingiverse);
             xhr.send();
 
             if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
@@ -423,7 +430,7 @@
         let thingUrl = "";
         let title = "";
         let fileListHidden = true;
-        let thingiverseApiToken = "";
+        let thingiverse = "";
 
     </script>
 </body>
