@@ -142,7 +142,9 @@
                 document.getElementById('zip-file-name').innerText = title + ".zip";
                 imageUrl = window.data.imageUrl;
                 if (imageUrl) {
-                    document.getElementById('preview-img').src = imageUrl;
+                    const img = document.getElementById('preview-img');
+                    img.src = imageUrl;
+                    img.alt = window.data.altDescription? window.data.altDescription : "";
                 }
 
                 thingUrl = window.data.thingUrl;
@@ -188,7 +190,7 @@
     </div>
     <p>View on Thingiverse: <a href="" id="thing-url" target="_blank"></a></p>
     <p id="download-err" class="err-msg"></p>
-    <p id="file-count">Contains:</p>
+    <p id="file-count" tabindex="0">Contains:</p>
     <div class="wrapper-files" id="wrapper-files">
         <div class="uploaded">
             <i class="far fa-file-archive"></i>
