@@ -285,6 +285,7 @@
             document.getElementById("spinner").style.display = "block";
             sendXapiStatement();
 
+
             const cloudinaryEntries = cloudinaryUrls.map(url => {
                 const split = url.split("/")
                 const filename = split[split.length-1];
@@ -415,6 +416,8 @@
             let fileBlobs = [];
 
             for(const elem of fileUrls) {
+                if (!elem || !elem.url) continue;
+
                 const blob = await fetch(elem.url)
                     .then(res => res.blob())
                     .catch(reason => {
