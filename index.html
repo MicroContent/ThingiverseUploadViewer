@@ -90,7 +90,14 @@
 
         .err-msg {
             color: red;
+        }
+
+        .display-none{
             display: none;
+        }
+
+        .display-block {
+            display: block;
         }
 
         #spinner {
@@ -115,12 +122,6 @@
                     init();
                     break;
 
-                case 'submit':
-                    if (data.value === 'true') {
-                        // todo ?
-                    }
-                    break;
-
                 case 'getXapiStatements':
                     stmts = data.stmts;
                     break;
@@ -136,6 +137,9 @@
                 .then(response => response.json())
                 .then(data => {
                     thingiverse = Object.values(data)[0];
+                }).catch(reason => {
+                    showErrorMsg('An error occured, try reloading the page or inform your system administrator.');
+                    console.log(reason);
                 });
 
             if (window.data !== undefined) { // edit
@@ -186,7 +190,7 @@
         <img class="preview-image center" id="preview-img" src="" alt="">
     </div>
     <p>View on Thingiverse: <a href="" id="thing-url" target="_blank"></a></p>
-    <p id="download-err" class="err-msg"></p>
+    <p id="download-err" class="err-msg display-none"></p>
     <p id="file-count" tabindex="0">Contains:</p>
     <div class="wrapper-files" id="wrapper-files">
         <div class="uploaded">
@@ -269,6 +273,18 @@
 
         }
 
+        function showErrorMsg(msg) {
+            const error = document.getElementById('download-err');
+            error.innerText = msg;
+            error.classList.remove('display-none');
+        }
+
+        function hideErrorMsg() {
+            const error = document.getElementById('download-err');
+            error.innerText = "";
+            error.classList.add('display-none');
+        }
+
         function sanitizeTitle(title) {
             return title.trim().replace(/[^a-zA-Z0-9 _.-]/g,"").replaceAll(" ", "-").toLowerCase();
         }
@@ -283,8 +299,8 @@
 
         async function downloadAll(){
             document.getElementById("spinner").style.display = "block";
+            hideErrorMsg();
             sendXapiStatement();
-
 
             const cloudinaryEntries = cloudinaryUrls.map(url => {
                 const split = url.split("/")
@@ -354,7 +370,7 @@
          * @param thingUrl public url of a Thing
          * @return {undefined|any} if successful a parsed JSON Object of all files, otherwise undefined
          */
-        function getThingFiles(thingUrl){
+        function getThingFiles(thingUrl){ // todo handle 404
             const split = thingUrl.split(':')
             const id = split[split.length-1]
 
@@ -372,7 +388,7 @@
             if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
                 return JSON.parse(xhr.response);
             } else {
-                console.log("An issue occurred during informing thingiverse preupload:");
+                handleThingiverseDownloadError(xhr.response);
                 console.log(xhr.response);
                 return undefined;
             }
@@ -383,7 +399,7 @@
          * @param thingUrl public url of a Thing
          * @return {undefined|any} if successful a parsed JSON Object of all images, otherwise undefined
          */
-        function getThingImages(thingUrl) {
+        function getThingImages(thingUrl) { // todo handle 404?
             const split = thingUrl.split(':')
             const id = split[split.length-1]
 
@@ -401,7 +417,7 @@
             if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
                 return JSON.parse(xhr.response);
             } else {
-                console.log("An issue occurred during informing thingiverse preupload:");
+                handleThingiverseDownloadError(xhr.status);
                 console.log(xhr.response);
                 return undefined;
             }
@@ -421,6 +437,7 @@
                 const blob = await fetch(elem.url)
                     .then(res => res.blob())
                     .catch(reason => {
+                        showErrorMsg("An error occurred during download. Please try again.")
                         console.log(reason)
                     });
 
@@ -428,6 +445,22 @@
             }
 
             return fileBlobs;
+        }
+
+        function handleThingiverseDownloadError(xhrStatus) {
+            let msg = "An unspecified error occurred"
+            switch (xhrStatus) {
+                case 404:
+                    msg = "We're sorry, but this Thing does not exist anymore";
+                    break;
+                case 401:
+                    msg = "You are not authorized to access this Thing. Try reloading the page or contact your system administrator";
+                    break;
+                default:
+                    break;
+            }
+
+            showErrorMsg(msg);
         }
 
         let stmts;
