@@ -104,6 +104,10 @@
             display: none;
             margin: auto;
         }
+
+        .text-download{
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -209,6 +213,7 @@
     <div class="spinner-border text-secondary" role="status" id="spinner">
         <span class="sr-only">Loading...</span>
     </div>
+    <div class="center text-download" id="spinner-info">preparing download...<br>please don't leave this page or close this window.</div>
 
     <!-- Plugin Business Logic -->
     <script>
@@ -298,7 +303,7 @@
         }
 
         async function downloadAll(){
-            document.getElementById("spinner").style.display = "block";
+            showHideSpinner(true)
             hideErrorMsg();
             sendXapiStatement();
 
@@ -322,14 +327,25 @@
          */
         function zipBlobs(blobList) {
             const zip = new JSZip();
-            const filename = title.trim().length>0 ? title : `soml-download-${getDateString()}`;
+            const filename = title.trim().length>0 ? title.substring(0, 10) : `soml-download-${getDateString()}`;
             for (const blob of blobList) {
                 zip.folder(filename).file(blob.name, blob.blob)
             }
             zip.generateAsync({type: "blob"}).then(blob => {
-                document.getElementById("spinner").style.display = "none";
+                showHideSpinner(false)
                 saveAs(blob, `${filename}.zip`);
             })
+        }
+
+        function showHideSpinner(isLoading){
+            if (isLoading) {
+                document.getElementById("spinner-info").style.display = "none";
+                document.getElementById("spinner").style.display = "none";
+            } else {
+                document.getElementById("spinner-info").style.display = "block";
+                document.getElementById("spinner").style.display = "block";
+
+            }
         }
 
         /**
