@@ -291,7 +291,7 @@
         }
 
         function sanitizeTitle(title) {
-            return title.trim().replace(/[^a-zA-Z0-9 _.-]/g,"").replaceAll(" ", "-").toLowerCase();
+            return title.substring(0,15).trim().replace(/[^a-zA-Z0-9 _.-]/g,"").replaceAll(" ", "-").toLowerCase();
         }
 
         function getDateString(){
