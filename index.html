@@ -307,7 +307,7 @@
         }
 
         async function downloadAll(){
-            showHideSpinner(true)
+            showHideSpinner(true);
             hideErrorMsg();
             sendXapiStatement();
 
@@ -343,11 +343,11 @@
 
         function showHideSpinner(isLoading){
             if (isLoading) {
-                document.getElementById("spinner-info").style.display = "none";
-                document.getElementById("spinner").style.display = "none";
-            } else {
                 document.getElementById("spinner-info").style.display = "block";
                 document.getElementById("spinner").style.display = "block";
+            } else {
+                document.getElementById("spinner-info").style.display = "none";
+                document.getElementById("spinner").style.display = "none";
 
             }
         }
