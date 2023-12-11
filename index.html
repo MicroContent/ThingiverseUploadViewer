@@ -311,7 +311,7 @@
             hideErrorMsg();
             sendXapiStatement();
 
-            const cloudinaryEntries = cloudinaryUrls.map(url => {
+            const cloudinaryEntries = cloudinaryUrls.filter(url => url!=null).map(url => {
                 const split = url.split("/")
                 const filename = split[split.length-1];
                 return {name: filename, url: url}
@@ -391,6 +391,7 @@
          * @return {undefined|any} if successful a parsed JSON Object of all files, otherwise undefined
          */
         function getThingFiles(thingUrl){ // todo handle 404
+            if (!thingUrl) return;
             const split = thingUrl.split(':')
             const id = split[split.length-1]
 
@@ -420,6 +421,7 @@
          * @return {undefined|any} if successful a parsed JSON Object of all images, otherwise undefined
          */
         function getThingImages(thingUrl) { // todo handle 404?
+            if (!thingUrl) return;
             const split = thingUrl.split(':')
             const id = split[split.length-1]
 
