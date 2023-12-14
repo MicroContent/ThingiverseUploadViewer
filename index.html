@@ -152,6 +152,7 @@
 
             if (window.data !== undefined) { // edit
                 title = sanitizeTitle(window.data.title);
+                document.getElementById('title').innerText = window.data.title;
                 document.getElementById('zip-file-name').innerText = title + ".zip";
 
                 imageUrl = window.data.imageUrl;
@@ -197,6 +198,7 @@
     <div class="wrapper">
         <img class="preview-image center" id="preview-img" src="" alt="">
     </div>
+    <h5 id="title"></h5>
     <p>View on Thingiverse: <a href="" id="thing-url" target="_blank"></a></p>
     <p id="download-err" class="err-msg display-none"></p>
     <p id="file-count" tabindex="0">Contains:</p>
